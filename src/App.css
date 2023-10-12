@@ -1,0 +1,143 @@
+#MainNav {
+  background-color: #cee2e7;
+}
+
+.App {
+  text-align: left;
+  font: 1em sans-serif;
+}
+
+.Button-holder {
+  padding: 0;
+}
+
+.App-content {
+  padding: 0;
+  background-color: #69d3f0;
+}
+
+.Marina-toolbar {
+  display: block;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+
+.Overlay-container {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+}
+
+.Overlay-content {
+  overflow: scroll;
+  resize: both;
+  height: 50vh;
+  width: 25vw;
+  padding: 5px;
+  border-radius: 5px;
+  border: #000000;
+  border-style: solid;
+  background-color: #cee2e7;
+  min-width: 200px;
+  min-height: 200px;
+  
+}
+
+.Overlay-content-tab {
+  position: relative;
+  left: 10px;
+  top: 1px;
+  border-radius: 5px 5px 0px 0px;
+  border: #000000;
+  border-style: solid;
+  background-color: #cee2e7;
+  width: 100px;
+  padding: 2px;
+  cursor: move;
+  text-align: center;
+}
+
+
+.Sidebar-content-seperator {
+  width: 100%;
+  height: 1px;
+  border-bottom: #000000;
+  margin: 0px 0px 5px 0px;
+}
+
+
+.Marina-worksheet-area {
+  overflow: scroll;
+  height: 90vh;
+  width: 100vw;
+  background-color: #448b9e;
+}
+
+.Marina-worksheet {
+  background-color: #c5d3d7;
+  z-index: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  height: 1000px;
+  width: 1000px;
+  display: block;
+}
+
+.Marina-boundary {
+  background-color: #69d3f0;
+  fill: none;
+  stroke: #000000;
+  stroke-dasharray: 4;
+  position: absolute;
+  display: inline-block;
+  margin: 5px;
+  z-index: 2;
+}
+
+.Bottom {
+  fill: #a8ffff6f;
+  fill-opacity: 50%;
+  z-index: 2;
+}
+
+.Pier {
+  fill: #8e6552;
+  z-index: 3;
+}
+
+.Slip {
+  fill: #1d590b;
+  stroke: #1d590b;
+  stroke-dasharray: 1;
+  fill-opacity: 10%;
+  z-index: 2;
+}
+
+.Power {
+  width: 5px;
+  height: 5px;
+  fill: #ffea00;
+  z-index: 4;
+}
+
+.Water {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  fill: #2200ff;
+  z-index: 4;
+}
+
+.Boat {
+  fill: #eff5ff;
+  z-index: 5;
+}
+
+.MarinaItemCircle {
+  stroke: rgba(0, 0, 0, 0.416);
+    fill: none;
+}
+
+
