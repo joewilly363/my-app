@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import Draggable from 'react-draggable';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import Container from 'react-bootstrap/Container';
@@ -50,10 +50,25 @@ function TopNavigation() {
 
 
 // Data structures reference:
+//
+// marinaBoundary = {
+//   width: <NUMBER>,
+//   height: <NUMBER>
+// }
+//
+// marinaItems = {
+//  Structure: [<ARRAY_OF_STRUCTURE_OBJECTS>],
+//  Utilitiy: [<ARRAY_OF_UTILITY_OBJECTS>],
+//  Boat: [<ARRAY_OF_BOAT_OBJECTS>],
+//  Slip: [<ARRAY_OF_SLIP_OBJECTS>],
+//  Bottom: [<ARRAY_OF_BOTTOM_OBJECTS>]
+// }
+//
 // marinaItem = {
 //     id: <UUID>,
 //     label: <STRING>,
-//     type: <STRING>, #This is the type of object (e.g., boat, utility, etc.)
+//     type: <STRING>, #This is one of the marinaItemTypes
+//     subtype: <STRING>, #This is any subtype of the type of object (e.g., Utilites might be Power or Water)
 //     defaultPosition: { x: <NUMBER>, y: <NUMBER> }, #This is the center position of the boat when it is rendered
 //     newPosition: { x: <NUMBER>, y: <NUMBER>  }, #This is the center position of the boat when it is dragged
 //     length: <NUMBER>,
@@ -62,8 +77,55 @@ function TopNavigation() {
 //     depth: <NUMBER>, #Negative number indicates a bottom up structure (e.g., a the ocean floor)
 //                      #Positive number indicates a top down structure (e.g., a boat in the water)
 //                      #Zero indicates a complete obstuction (e.g., a pier, land)
-//     type_data: <OBJECT> #This is a JSON object that contains the data specific to the type of object
 //   },
+//
+// slipOccupancy: [
+//   slipID: <SLIP_ID>,
+//   total: {
+//     occupantCount: <Number>,
+//     linearOccupancy: <NUMBER>,
+//     squareOccupancy: <NUMBER>
+//   },
+//   occupants: {
+//     <BOAT_ID>: {
+//       linearOccupancy: <NUMBER>,
+//       squareOccupancy: <NUMBER>
+//    }
+// ]
+// 
+//
+// rateCard = {
+//   <SLIP SUBTYPE STRING>: [
+//     { 
+//       linearRangeMin: <NUMBER>,
+//       linearRangeMax: <NUMBER>,
+//       linearRate: <NUMBER>,
+//     },
+//     ]
+
+
+// BLOCK //
+// Declare constant reference variables
+
+const arrayOfMarinaItemTypes = ["Bottom", "Slip", "Structure", "Utility"]
+const defaultViewBoxAttrs = [-150, -150, 1000, 1000]
+const defaultMarinaItem = {
+  id: uuidv4(),
+  label: "",
+  type: "Structure",
+  subtype: "",
+  defaultPosition: { x: 0, y: 0 }, //Default new items to the top left corner of the marina
+  newPosition: { x: 0, y: 0 },
+  length: 50,
+  angle: 0,
+  width: 20,
+  depth: 0,
+  type_data: {}
+}
+
+
+
+
 
 
 
@@ -71,68 +133,67 @@ function TopNavigation() {
 
 function App() {
 
-  const [slipOccupancy, setSlipOccupancy] = useState(
-    JSON.parse(localStorage.getItem("slipOccupancy")) || 
-    {}
-)
-  // TODO: Add a function to update the slip occupancy
-  // TODO: Add a useEffect function to call occupancy function when Boat State changes
+  // BLOCK //
+  // Declare state variables
 
-  const calculateSlipOccupancy = () => {
 
-    let newSlipOccupancy = {}
-    marinaItems.filter((item) => item.type === "Slip").map((item, index) => {
-      newSlipOccupancy[item.label] = {
-        "occupant": null,
-        "linearOccupancy": 0,
-        "squareOccupancy": 0
-      }
-    })
+  const [viewBoxAttrs, setViewBoxAttrs] = useState(defaultViewBoxAttrs)
+  const [itemsInputDisabled, setItemsInputDisabled] = useState({"Structure": true, "Utility": true, "Boat": true, "Bottom": true, "Slip": true})
+  const [newMarinaItem, setNewMarinaItem] = useState(defaultMarinaItem)
+  const [openEditMenu, setOpenEditMenu] = useState(true);
+  const [openInfoMenu, setOpenInfoMenu] = useState(false);
 
-    marinaItems.filter((item) => item.type === "Boat").map((item, index) => {
-      marinaItems.filter((item2) => item2.type === "Slip").map((item2, index2) => {
-        let itemPosition = [item.defaultPosition.x + item.newPosition.x, item.defaultPosition.y + item.newPosition.y]
-        if (d3.polygonContains(getPolygonPoints(item2), itemPosition)) {
-          newSlipOccupancy[item2.label] = {
-            "occupant": item.label,
-            "linearOccupancy": Number(item.length),
-            "squareOccupancy": Number(item.length) * Number(item.width)
+  const [marinaBoundary, setMarinaBoundary] = useState(JSON.parse(localStorage.getItem("marinaBoundary")) || { width: 500, height: 500})
+
+  const [marinaBottoms, setMarinaBottoms] = useState(JSON.parse(localStorage.getItem("marinaBottoms")) || [])
+  const [marinaStructures, setMarinaStructures] = useState(JSON.parse(localStorage.getItem("marinaStructures")) || [])
+  const [marinaUtilities, setMarinaUtilities] = useState(JSON.parse(localStorage.getItem("marinaUtilities")) || [])
+  const [marinaSlips, setMarinaSlips] = useState(JSON.parse(localStorage.getItem("marinaSlips")) || [])
+  const [boats, setBoats] = useState(JSON.parse(localStorage.getItem("boats")) || [])
+
+  const [rateCard, setRateCard] = useState(JSON.parse(localStorage.getItem("rateCard")) || {})
+
+  // BLOCK //
+  // State  utility functions (i.e., functions that are directly related to the state of the app)
+
+  const getOccupancy = () => {
+
+    var newSlipOccupancy = []
+    var newBoatOccupance = []
+    marinaSlips.map((slip, index) => {
+      newSlipOccupancy.push({
+        "slipID": slip.id,
+        "total": {
+          "occupantCount": 0,
+          "linearOccupancy": 0,
+          "squareOccupancy": 0
+        },
+        "occupants": {}
+      })
+      var slipPoints = getPolygonPoints(slip)
+      boats.map((boat, index2) => {
+        var boatCenterPosition = [boat.defaultPosition.x + boat.newPosition.x, boat.defaultPosition.y + boat.newPosition.y]
+        if (d3.polygonContains(slipPoints, boatCenterPosition)) {
+          newSlipOccupancy[index].total.occupantCount = Number(newSlipOccupancy[index].total.occupantCount) + 1
+          newSlipOccupancy[index].total.linearOccupancy = Number(newSlipOccupancy[index].total.linearOccupancy) + Number(boat.length)
+          newSlipOccupancy[index].total.squareOccupancy = Number(newSlipOccupancy[index].total.squareOccupancy) + Number(boat.length) * Number(boat.width)
+          newSlipOccupancy[index].occupants[boat.id] = {
+            "linearOccupancy": Number(boat.length),
+            "squareOccupancy": Number(boat.length) * Number(boat.width)
           }
+          newBoatOccupance.push({
+            "boatID": boat.id,
+            "slip": {
+              "slipID": slip.id,
+            }
+          })
         }
       })
     })
-    console.log(newSlipOccupancy)
-    setSlipOccupancy(newSlipOccupancy)
+    return [newSlipOccupancy, newBoatOccupance]
+
+
   }
-
-  
-  const arrayOfMarinaItemTypes = ["Bottom", "Slip", "Pier", "Power", "Water", "Boat"]
-
-  const [marinaItems, setMarinaItems] = useState(
-    JSON.parse(localStorage.getItem("marinaItems")) || []
-  )
-
-  useEffect(() => {
-    localStorage.setItem("marinaItems", JSON.stringify(marinaItems));
-    console.log("marinaItems changed");
-    calculateSlipOccupancy();
-    localStorage.setItem("slipOccupancy", JSON.stringify(slipOccupancy));
-  }, [marinaItems]);
-
-
-
-
-  const [marinaBoundary, setMarinaBoundary] = useState(
-    JSON.parse(localStorage.getItem("marinaBoundary")) || 
-      { width: 500, height: 500}
-  )
-
-  useEffect(() => {
-    localStorage.setItem("marinaBoundary", JSON.stringify(marinaBoundary));
-  }, [marinaBoundary]);
-
-  const defaultViewBoxAttrs = [-150, -150, 1000, 1000]
-  const [viewBoxAttrs, setViewBoxAttrs] = useState(defaultViewBoxAttrs)
 
   const zoomIn = () => {
     let newViewBoxAttrs = [...viewBoxAttrs]
@@ -172,16 +233,100 @@ function App() {
     setViewBoxAttrs(newViewBoxAttrs)
   }
 
-  const [itemsInputDisabled, setItemsInputDisabled] = useState({"Pier": true, "Power": true, "Water": true, "Boat": true, "Bottom": true, "Slip": true})
-
-  const updateNewPosition = (data, index) => {
+  const updateNewPosition = (data, index, item) => {
     // data is an object with x and y defined
     // index is the number/position/order of the item in the array
     // used to update the array storage of the item's position
-    let newArr = [...marinaItems];
+    let newArr = [...getMarinaStateObject(item.type)];
     newArr[index].newPosition = { x: data.x, y: data.y };
-    setMarinaItems(newArr);
+    getMarinaStateSetter(item.type)(newArr);
   }
+
+  const updateAngle = (index, item, {step=5, ccw=true, fromZero=false}) => {
+    let newArr = [...getMarinaStateObject(item.type)];
+    // If from zero then the step will be the exact angle, otherwise step will be added to previous angle
+    var newAngle = 0
+    if (fromZero) {
+      newAngle = 0
+    } else {
+      newAngle = newArr[index].angle
+    }
+    // If ccw then subtract the step to rotate counter-clockwise, otherwise add the step to rotate clockwise
+    if (ccw) {
+      newAngle = newAngle - step
+    } else {
+      newAngle = newAngle + step
+    }
+    newArr[index].angle = newAngle
+    getMarinaStateSetter(item.type)(newArr);
+  }
+
+  // There has to be a better way to do this...
+  // This is my way of fixing the Draggable "bug" that exponetially moves items
+  // Come back to and set each translate object to 0 after the new position is saved
+  // For now, comment out and don't use the save position function
+  // const saveAllNewPositions = () => {
+  //   let newArr = [...marinaItems];
+  //   {newArr.map((item, index) => {
+  //     let tranlatedX = item.defaultPosition.x + item.newPosition.x;
+  //     let tranlatedY = item.defaultPosition.y + item.newPosition.y;
+  //     newArr[index].defaultPosition = { x: tranlatedX, y: tranlatedY };
+  //     newArr[index].newPosition = { x: 0, y: 0 };
+  //   }
+  //   )}
+  //   // TODO: Don't use setMarina function. Instead directly update the storage JSON and then reload page. De prioritze though as it is low impact / value add
+  //   setMarinaItems(newArr);
+  //   window.location.reload();
+  // }
+
+  // BLOCK //
+  // Event functions (i.e., functions that are directly related to events and may or may not depend on the state of the app)
+
+  const createNewMarinaItem = (e) => {
+    if (newMarinaItem.label.trim() !== "") {
+      var itemStateObject = getMarinaStateObject(newMarinaItem.type)
+      var itemStateSetter = getMarinaStateSetter(newMarinaItem.type)
+      itemStateSetter((itemStateObject) => [...itemStateObject, newMarinaItem]);
+      setNewMarinaItem({...defaultMarinaItem, "id": uuidv4()});
+    } else {
+      alert("New Marina Item must have a label");
+    }
+  }
+
+  const updateMarinaItem = (event, item, index) => {
+    let newArr = [...getMarinaStateObject(item.type)];
+    let newItem = {...item};
+    newItem[event.target.name] = event.target.value;
+    newArr[index] = newItem;
+    getMarinaStateSetter(item.type)(newArr);
+  }
+
+  const deleteMarinaItem = (e, item, index) => {
+    let newArr = [...getMarinaStateObject(item.type)];
+    newArr.splice(index, 1);
+    getMarinaStateSetter(item.type)(newArr);
+  }
+
+
+  // BLOCK //
+  // Declare state-dependant variables (likely leveraging state utility function, and useMemo hook)
+
+  const [slipOccupancy, boatOccupance] = useMemo(() => getOccupancy(), [boats, marinaSlips]) // Destinction between Ocupancy and Occupance used to differenciate the former as the thing that gets occupied and the latter the thing doing the occupying
+
+
+
+  // BLOCK //
+  // Functions for synching data (for now to local storage)
+
+  useEffect(() => {localStorage.setItem("marinaBoundary", JSON.stringify(marinaBoundary));}, [marinaBoundary]);
+  useEffect(() => {localStorage.setItem("marinaStructures", JSON.stringify(marinaStructures));}, [marinaStructures]);
+  useEffect(() => {localStorage.setItem("marinaUtilities", JSON.stringify(marinaUtilities));}, [marinaUtilities]);
+  useEffect(() => {localStorage.setItem("marinaSlips", JSON.stringify(marinaSlips));}, [marinaSlips]);
+  useEffect(() => {localStorage.setItem("boats", JSON.stringify(boats));}, [boats]);
+
+    
+  // BLOCK //
+  // Utility functions (i.e., functions that are not directly related to the state of the app)
 
   const getPolygonPoints = (item) => {
     // item is a marinaItem object
@@ -201,84 +346,39 @@ function App() {
     return [topleft, topright, bottomright, bottomleft]
   }
 
-  const updateAngle = (index, {step=5, ccw=true, fromZero=false}) => {
-    var newArr = [...marinaItems]
-    // If from zero then the step will be the exact angle, otherwise step will be added to previous angle
-    var newAngle = 0
-    if (fromZero) {
-      newAngle = 0
-    } else {
-      newAngle = newArr[index].angle
-    }
-    // If ccw then subtract the step to rotate counter-clockwise, otherwise add the step to rotate clockwise
-    if (ccw) {
-      newAngle = newAngle - step
-    } else {
-      newAngle = newAngle + step
-    }
-    newArr[index].angle = newAngle
-    setMarinaItems(newArr)
+  const getMarinaStateObject = (itemType) => {
+    if (itemType === "Slip") { return marinaSlips }
+    if (itemType === "Boat") { return boats }
+    if (itemType === "Structure") { return marinaStructures }
+    if (itemType === "Utility") { return marinaUtilities }
+    if (itemType === "Bottom") { return marinaBottoms }
+    console.log("Error: getMarinaStateObject did not find a match for itemType: " + itemType)
   }
 
-  const defaultMarinaItem = {
-    id: uuidv4(), // TODO: Add uuid function
-    label: "",
-    type: "Pier",
-    defaultPosition: { x: 0, y: 0 }, //Default new items to the top left corner of the marina
-    newPosition: { x: 0, y: 0 },
-    length: 50,
-    angle: 0,
-    width: 20,
-    depth: 0,
-    type_data: {}
+  const getMarinaStateSetter = (itemType) => {
+    if (itemType === "Slip") { return setMarinaSlips }
+    if (itemType === "Boat") { return setBoats }
+    if (itemType === "Structure") { return setMarinaStructures }
+    if (itemType === "Utility") { return setMarinaUtilities }
+    if (itemType === "Bottom") { return setMarinaBottoms }
+    console.log("Error: getMarinaStateSetter did not find a match for itemType: " + itemType)
   }
 
-  const [newMarinaItem, setNewMarinaItem] = useState(defaultMarinaItem)
 
-  const createNewMarinaItem = (e) => {
-    if (newMarinaItem.label.trim() !== "") {
-      setMarinaItems((marinaItems) => [...marinaItems, newMarinaItem]);
-      setNewMarinaItem({...defaultMarinaItem, "id": uuidv4()});
-    } else {
-      alert("New Marina Item must have a label");
-    }
-  }
 
-  // There has to be a better way to do this...
-  // This is my way of fixing the Draggable "bug" that exponetially moves items
-  const saveAllNewPositions = () => {
-    let newArr = [...marinaItems];
-    {newArr.map((item, index) => {
-      let tranlatedX = item.defaultPosition.x + item.newPosition.x;
-      let tranlatedY = item.defaultPosition.y + item.newPosition.y;
-      newArr[index].defaultPosition = { x: tranlatedX, y: tranlatedY };
-      newArr[index].newPosition = { x: 0, y: 0 };
-    }
-    )}
-    setMarinaItems(newArr);
-    window.location.reload();
-  }
 
-  const updateMarinaItem = (event, item, index) => {
-    let newArr = [...marinaItems];
-    let newItem = {...item};
-    newItem[event.target.name] = event.target.value;
-    newArr[index] = newItem;
-    setMarinaItems(newArr);
-    console.log("got to the update function");
-  }
+  
 
-  const deleteMarinaItem = (e, index) => {
-    let newArr = [...marinaItems];
-    newArr.splice(index, 1);
-    setMarinaItems(newArr);
-  }
+
+
+  // Block //
+  // Render functions (i.e., functions that render the app)
 
   const createMarinaItemEditForm = (item, index) => {
 
     return (
       <>
-         <label>
+        <label>
           Item label:
           <input 
             type="text"
@@ -328,11 +428,8 @@ function App() {
       <button onClick={(e) => {deleteMarinaItem(e, index)}}>Delete</button>
       </>
     )
-    }
+  }
 
-    
-  const [openEditMenu, setOpenEditMenu] = useState(true);
-  const [openInfoMenu, setOpenInfoMenu] = useState(false);
 
  
   return (
@@ -358,14 +455,12 @@ function App() {
                   
                   {arrayOfMarinaItemTypes.map((itemType, itemTypeIndex) => {
                     return ( <>
-                  {marinaItems.map((item, index) => {
-                    if (item.type !== itemType) {
-                      return null
-                    }
+                  {getMarinaStateObject(itemType).map((item, index) => {
                     return (
                       <Draggable 
                         disabled={itemsInputDisabled[item.type]}
                         key={item.id}
+                        grid={[5, 5]}
                         bounds={{
                           // TODO generalize to fit any Marina boundaries
                           left: 0-item.defaultPosition.x, 
@@ -374,7 +469,7 @@ function App() {
                           bottom: marinaBoundary.height-item.defaultPosition.y
                         }}
                         onStop={(e, data) => {
-                          updateNewPosition(data, index);
+                          updateNewPosition(data, index, item);
                         }}
                         >
                           <g>
@@ -395,7 +490,7 @@ function App() {
                               <circle className="MarinaItemCircle" r={item.length/2} cx={item.defaultPosition.x} cy={item.defaultPosition.y}></circle>
                             <a onClick={(e) => {
                               e.preventDefault();
-                              updateAngle(index, {step: 45, ccw: false, fromZero: false});}}>
+                              updateAngle(index, item, {step: 45, ccw: false, fromZero: false});}}>
                               <circle 
                                 className='rotateButton' 
                                 cx={item.defaultPosition.x+10}
@@ -406,7 +501,7 @@ function App() {
                             </a>
                             <a onClick={(e) => {
                               e.preventDefault();
-                              updateAngle(index, {step: 45, ccw: true, fromZero: false});}}>
+                              updateAngle(index, item, {step: 45, ccw: true, fromZero: false});}}>
                               <circle 
                                 className='rotateButton' 
                                 cx={item.defaultPosition.x-10}
@@ -476,12 +571,13 @@ function App() {
                         <tbody>
                           {(() => {
                             console.log("executing table function")
-                            let totalNumberOfSlips = marinaItems.filter((item) => item.type === "Slip").length
-                            let totalNumberOfBoats = marinaItems.filter((item) => item.type === "Boat").length
-                            let totalLinearSpace = marinaItems.filter((item) => item.type === "Slip").map((item) => Number(item.length)).reduce((a, b) => a + b, 0)
-                            let totalSquareSpace = marinaItems.filter((item) => item.type === "Slip").map((item) => Number(item.length) * Number(item.width)).reduce((a, b) => a + b, 0)
-                            let totalLinearOccupancy = Object.keys(slipOccupancy).map((key) => Number(slipOccupancy[key].linearOccupancy)).reduce((a, b) => a + b, 0)
-                            let totalSquareOccupancy = Object.keys(slipOccupancy).map((key) => Number(slipOccupancy[key].squareOccupancy)).reduce((a, b) => a + b, 0)
+                            // TODO: make these useMemo global variables
+                            let totalNumberOfSlips = marinaSlips.length
+                            let totalNumberOfBoatsAssigned = boatOccupance.length
+                            let totalLinearSpace = marinaSlips.map((item) => Number(item.length)).reduce((a, b) => a + b, 0)
+                            let totalSquareSpace = marinaSlips.map((item) => Number(item.length) * Number(item.width)).reduce((a, b) => a + b, 0)
+                            let totalLinearOccupancy = slipOccupancy.map((item) => Number(item.total.linearOccupancy)).reduce((a, b) => a + b, 0)
+                            let totalSquareOccupancy = slipOccupancy.map((item) => Number(item.total.squareOccupancy)).reduce((a, b) => a + b, 0)
                             let linearOccupancyPercentage = totalLinearOccupancy / totalLinearSpace * 100
                             let squareOccupancyPercentage = totalSquareOccupancy / totalSquareSpace * 100
 
@@ -489,8 +585,8 @@ function App() {
                             return (
                               <>
                                 
-                                  <tr><td>Total number of Slips</td><td>{totalNumberOfSlips}</td></tr>
-                                  <tr><td>Total number of Boats</td><td>{totalNumberOfBoats}</td></tr>
+                                  <tr><td>Total number of slips</td><td>{totalNumberOfSlips}</td></tr>
+                                  <tr><td>Total number of boats assigned to slips</td><td>{totalNumberOfBoatsAssigned}</td></tr>
                                   <tr><td>Total linear space</td><td>{totalLinearSpace}</td></tr>
                                   <tr><td>Total square space</td><td>{totalSquareSpace}</td></tr>
                                   <tr><td>Total linear occupancy</td><td>{totalLinearOccupancy}</td></tr>
@@ -521,17 +617,16 @@ function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {Object.keys(slipOccupancy).map((slipKey) => {
-                              let slipInfo = marinaItems.filter((item) => item.label === slipKey)[0]
-                              let slipOcc = slipOccupancy[slipKey]
+                            {slipOccupancy.map((occItem) => {
+                              let slipItem = marinaSlips.filter((slipItem) => slipItem.id === occItem.slipID)[0]
                               return (
-                                <tr key={slipKey}>
-                                  <td>{slipKey}</td>
-                                  <td>{slipInfo.length}</td>
-                                  <td>{slipInfo.length * slipInfo.width}</td>
-                                  <td>{slipOcc.occupant}</td>
-                                  <td>{slipOcc.linearOccupancy}</td>
-                                  <td>{slipOcc.squareOccupancy}</td>
+                                <tr key={slipItem.id}>
+                                  <td>{slipItem.id}</td>
+                                  <td>{slipItem.length}</td>
+                                  <td>{slipItem.length * slipItem.width}</td>
+                                  <td>{occItem.occupant}</td>
+                                  <td>{occItem.linearOccupancy}</td>
+                                  <td>{occItem.squareOccupancy}</td>
                                 </tr>
                               )
                             })}
@@ -583,12 +678,11 @@ function App() {
                           value={newMarinaItem.type}
                           onChange={(e) => setNewMarinaItem({...newMarinaItem, type: e.target.value})}
                           name="type">
-                          <option value="Pier">Pier</option>
+                          <option value="Structure">Structure</option>
                           <option value="Bottom">Bottom</option>
                           <option value="Slip">Slip</option>
                           <option value="Boat">Boat</option>
-                          <option value="Power">Power</option>
-                          <option value="Water">Water</option>
+                          <option value="Utility">Utility</option>
                         </select>
                       </label>
                       <label>
@@ -646,22 +740,17 @@ function App() {
                       </Accordion.Body>
                     </Accordion.Item>
 
-                    {arrayOfMarinaItemTypes.map((type, index) => {
+                    {arrayOfMarinaItemTypes.map((itemType, index) => {
                       return (
                         <Accordion.Item eventKey={index+2}>
-                          <Accordion.Header>Edit {type} Items</Accordion.Header>
+                          <Accordion.Header>Edit {itemType} Items</Accordion.Header>
                           <Accordion.Body>
                             <ButtonGroup size='sm'>
-                              <Button onClick={() => {setItemsInputDisabled({...itemsInputDisabled, [type]: !itemsInputDisabled[type]})}}>Edit on/off</Button>
-                              <Button onClick={() => {saveAllNewPositions()}}>Save all new positions</Button>
+                              <Button onClick={() => {setItemsInputDisabled({...itemsInputDisabled, [itemType]: !itemsInputDisabled[itemType]})}}>Edit on/off</Button>
                             </ButtonGroup>
                             
-                            {marinaItems.map((item, index2) => {
-                              if (item.type === type) {
-                                return (
+                            {getMarinaStateObject(itemType).map((item, index2) => {
                                   <div key={item.id}>{createMarinaItemEditForm(item, index2)}<br></br></div>
-                                )
-                              }
                             })}
                           </Accordion.Body>
                         </Accordion.Item>
