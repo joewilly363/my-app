@@ -1,0 +1,195 @@
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins";
+
+$theme-colors: (
+    primary: $purple
+);
+
+
+@import "bootstrap";
+
+
+:root {
+    --overlay-tab-height: 25px;
+    --overlay-right-tab-width:25px;
+  }
+  
+  
+  #MainNav {
+    background-color: #cee2e7;
+  }
+  
+  .App {
+    text-align: left;
+    font: 1em sans-serif;
+  }
+  
+  .Button-holder {
+    padding: 0;
+  }
+  
+  .App-content {
+    padding: 0;
+    background-color: #69d3f0;
+  }
+  
+  .Marina-toolbar {
+    display: block;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+  }
+  
+  
+  .Overlay-container {
+    position: absolute;
+    top: 60vh;
+    left: 0;
+  }
+  
+  .Overlay-content {
+    overflow: scroll;
+  
+    padding: 5px;
+    border-radius: 5px;
+    border: #000000;
+    border-style: solid;
+    background-color: #ffffff;
+    width: 100vw;
+    height: calc(40vh - var(--overlay-tab-height));
+    
+  }
+  
+  .Overlay-content-tab {
+    position: relative;
+    left: 10px;
+    top: 1px;
+    border-radius: 5px 5px 0px 0px;
+    border: #000000;
+    border-style: solid;
+    background-color: #ffffff;
+    width: 25px;
+    height: var(--overlay-tab-height);
+    padding: 2px;
+    cursor: move;
+    text-align: center;
+  }
+  
+  .Overlay-container-right {
+    position: absolute;
+    top: 0vh;
+    left: 60vw;
+  }
+  
+  .Overlay-content-right {
+    overflow: scroll;
+    display: inline-block;
+    padding: 5px;
+    border-radius: 5px;
+    border: #000000;
+    border-style: solid;
+    background-color: #ffffff;
+    width: calc(40vw - var(--overlay-right-tab-width));
+    height: 99vh;
+    
+  }
+  
+  .Overlay-content-right-tab {
+    position: relative;
+    display: inline-block;
+    bottom: 90vh;
+    border-radius: 5px 0px 0px 5px;
+    border: #000000;
+    border-style: solid;
+    background-color: #ffffff;
+    width: var(--overlay-right-tab-width);
+    padding: 2px;
+    cursor: move;
+    text-align: center;
+  }
+  
+  
+  .Sidebar-content-seperator {
+    width: 100%;
+    height: 1px;
+    border-bottom: #000000;
+    margin: 0px 0px 5px 0px;
+  }
+  
+  
+  .Marina-worksheet-area {
+    overflow: scroll;
+    height: 100vh;
+    width: 100vw;
+    background-color: #225765;
+  }
+  
+  .Marina-worksheet {
+    background-color: #e3f5fa;
+    z-index: 1;
+    overflow-x: auto;
+    overflow-y: auto;
+    height: 4000px;
+    width: 4000px;
+    display: block;
+  }
+  
+  .Marina-boundary {
+    background-color: #69d3f0;
+    fill: none;
+    stroke: #000000;
+    stroke-dasharray: 4;
+    position: absolute;
+    display: inline-block;
+    margin: 5px;
+    z-index: 2;
+  }
+  
+  .Bottom {
+    fill: #a8ffff6f;
+    fill-opacity: 50%;
+    z-index: 2;
+  }
+  
+  .Structure {
+    fill: #b39372;
+    z-index: 3;
+  }
+  
+  .Slip {
+    fill: #1d590b;
+    stroke: #1d590b;
+    stroke-dasharray: 1;
+    fill-opacity: 10%;
+    z-index: 2;
+  }
+  
+  .Power {
+    width: 5px;
+    height: 5px;
+    fill: #ffea00;
+    z-index: 4;
+  }
+  
+  .Water {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    fill: #2200ff;
+    z-index: 4;
+  }
+  
+  .Boat {
+    fill: #eff5ff;
+    stroke: #000000;
+    z-index: 5;
+  }
+  
+  .MarinaItemCircle {
+    stroke: rgba(0, 0, 0, 0.416);
+      fill: none;
+  }
+  
+  
+  
