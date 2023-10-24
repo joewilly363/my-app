@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/joewilly363/my-app/static/css/main.f0ed0f06.css",
+    "main.js": "/joewilly363/my-app/static/js/main.8b253519.js",
+    "static/js/787.28cb0dcd.chunk.js": "/joewilly363/my-app/static/js/787.28cb0dcd.chunk.js",
+    "static/media/logo.svg": "/joewilly363/my-app/static/media/logo.384140737f0151e1b1485992fc14dfc0.svg",
+    "index.html": "/joewilly363/my-app/index.html",
+    "main.f0ed0f06.css.map": "/joewilly363/my-app/static/css/main.f0ed0f06.css.map",
+    "main.8b253519.js.map": "/joewilly363/my-app/static/js/main.8b253519.js.map",
+    "787.28cb0dcd.chunk.js.map": "/joewilly363/my-app/static/js/787.28cb0dcd.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f0ed0f06.css",
+    "static/js/main.8b253519.js"
+  ]
+}
