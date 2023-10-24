@@ -1,5 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
+import * as d3 from 'd3';
 import Draggable from 'react-draggable';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,7 +23,7 @@ import Table from 'react-bootstrap/Table';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import Modal from 'react-bootstrap/Modal';
-import * as d3 from 'd3';
+
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CardHeader from 'react-bootstrap/esm/CardHeader';
@@ -267,7 +268,6 @@ function App() {
     if (rate === 0) { console.log("Error: No rate found for boat " + boat.label + " in slip " + slip.subtype) }
     return Number(rate)
   }
-
 
   // getOccupancy is used in a useMemo hook
   const getOccupancy = () => {

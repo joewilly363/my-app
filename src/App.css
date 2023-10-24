@@ -1,4 +1,6 @@
 :root {
+  
+  --navbar-height: 55px;
   --overlay-tab-height: 25px;
   --overlay-right-tab-width:25px;
 
@@ -27,10 +29,14 @@
   color: white !important;
 }
 
+#MainContainer {
+  background-color: none;
+}
+
 #MainNav {
-  position: absolute;
+  height: var(--navbar-height);
   background-color: var(--brand-dark);
-  width: 100vw;
+
 }
 
 /* Top level app styles */
