@@ -17,8 +17,8 @@ export default function Demo() {
 
 
     // Demo defaults
-    const marinaBoundary = { width: 800, height: 500 }
-    const viewBoxAttrs = [0, 0, marinaBoundary.width, marinaBoundary.height]
+    const marinaBoundary = { width: 500, height: 500 }
+    const viewBoxAttrs = [270, 0, marinaBoundary.width, marinaBoundary.height]
     const arrayOfMarinaItemTypes = [
         //"Bottom", 
         "Slip",
@@ -56,46 +56,11 @@ export default function Demo() {
         //     depth: 0,
         // },
     ]
-    const marinaSlips = [
+    const defaultMarinaSlips = [
+
         {
             id: uuidv4(),
             label: "Slip 1",
-            type: "Slip",
-            subtype: "Standard",
-            length: 133,
-            width: 68.8,
-            angle: 0,
-            defaultPosition: { x: 41.3, y: 320.1 },
-            newPosition: { x: 0, y: 0 },
-            depth: 0,
-        },
-        {
-            id: uuidv4(),
-            label: "Slip 2",
-            type: "Slip",
-            subtype: "Standard",
-            length: 133,
-            width: 68.8,
-            angle: 0,
-            defaultPosition: { x: 151.4, y: 320.1 },
-            newPosition: { x: 0, y: 0 },
-            depth: 0,
-        },
-        {
-            id: uuidv4(),
-            label: "Slip 3",
-            type: "Slip",
-            subtype: "Standard",
-            length: 133,
-            width: 68.8,
-            angle: 0,
-            defaultPosition: { x: 220.2, y: 320.1 },
-            newPosition: { x: 0, y: 0 },
-            depth: 0,
-        },
-        {
-            id: uuidv4(),
-            label: "Slip 4",
             type: "Slip",
             subtype: "Standard",
             length: 133,
@@ -107,7 +72,7 @@ export default function Demo() {
         },
         {
             id: uuidv4(),
-            label: "Slip 5",
+            label: "Slip 2",
             type: "Slip",
             subtype: "Standard",
             length: 93.4,
@@ -119,7 +84,7 @@ export default function Demo() {
         },
         {
             id: uuidv4(),
-            label: "Slip 6",
+            label: "Slip 3",
             type: "Slip",
             subtype: "Standard",
             length: 93.4,
@@ -131,7 +96,7 @@ export default function Demo() {
         },
         {
             id: uuidv4(),
-            label: "Slip 7",
+            label: "Slip 4",
             type: "Slip",
             subtype: "Mega",
             length: 346.8,
@@ -143,9 +108,9 @@ export default function Demo() {
         },
         {
             id: uuidv4(),
-            label: "Slip 8",
+            label: "Slip 5",
             type: "Slip",
-            subtype: "Standard",
+            subtype: "Mega",
             length: 346.8,
             width: 123,
             angle: 0,
@@ -158,54 +123,54 @@ export default function Demo() {
     const defaultBoats = [
         {
             id: uuidv4(),
-            label: "Basilone",
+            label: "C",
             type: "Boat",
             subtype: "Motor",
             length: 150,
             width: 60,
             angle: 0,
-            defaultPosition: { x: 100, y: 200 },
+            defaultPosition: { x: 380, y: 100 },
             newPosition: { x: 0, y: 0 },
             depth: 5,
         },
         {
             id: uuidv4(),
-            label: "Puller",
+            label: "B",
             type: "Boat",
             subtype: "Motor",
             length: 120,
             width: 40,
             angle: 0,
-            defaultPosition: { x: 200, y: 200 },
+            defaultPosition: { x: 330, y: 100 },
             newPosition: { x: 0, y: 0 },
             depth: 5,
         },
         {
             id: uuidv4(),
-            label: "Butler",
+            label: "D",
             type: "Boat",
             subtype: "Motor",
             length: 200,
-            width: 80,
+            width: 70,
             angle: 0,
-            defaultPosition: { x: 300, y: 200 },
+            defaultPosition: { x: 450, y: 100 },
             newPosition: { x: 0, y: 0 },
             depth: 5,
         },
         {
             id: uuidv4(),
-            label: "Mattis",
+            label: "A",
             type: "Boat",
             subtype: "Sail",
             length: 50,
             width: 20,
             angle: 0,
-            defaultPosition: { x: 400, y: 200 },
+            defaultPosition: { x: 300, y: 100 },
             newPosition: { x: 0, y: 0 },
             depth: 5,
         },
     ]
-    const rateCards = [
+    const defaultRateCards = [
         {
             id: uuidv4(),
             label: "Standard",
@@ -261,6 +226,8 @@ export default function Demo() {
     ]
 
     const [boats, setBoats] = useState(defaultBoats)
+    const [marinaSlips, setMarinaSlips] = useState(defaultMarinaSlips)
+    const [rateCards, setRateCards] = useState(defaultRateCards)
 
     const getMarinaStateObject = (itemType) => {
         if (itemType === "Slip") { return marinaSlips }
@@ -273,12 +240,12 @@ export default function Demo() {
     }
 
     const getMarinaStateSetter = (itemType) => {
-        // if (itemType === "Slip") { return setMarinaSlips }
+        if (itemType === "Slip") { return setMarinaSlips }
         if (itemType === "Boat") { return setBoats }
         // if (itemType === "Structure") { return setMarinaStructures }
         // if (itemType === "Utility") { return setMarinaUtilities }
         // if (itemType === "Bottom") { return setMarinaBottoms }
-        // if (itemType === "RateCard") { return setRateCards }
+        if (itemType === "RateCard") { return setRateCards }
         console.log("Error: getMarinaStateSetter did not find a match for itemType: " + itemType)
     }
 
@@ -392,29 +359,36 @@ export default function Demo() {
     }
 
     const [slipOccupancy, boatOccupance] = useMemo(() => getOccupancy(), [boats, marinaSlips, rateCards]) // Destinction between Ocupancy and Occupance used to differenciate the former as the thing that gets occupied and the latter the thing doing the occupying
-    // const marinaStats = useMemo(() => {
-    //     let marinaStatsObject = {}
-    //     // TODO: Make more efficient by iterating though the slipOccupancy, marinaSlips once
-    //     marinaStatsObject["totalSlips"] = Number(marinaSlips.length)
-    //     marinaStatsObject["totalLinearSpace"] = Number(marinaSlips.reduce((a, b) => Number(a) + Number(b.length), 0))
-    //     marinaStatsObject["totalSquareSpace"] = Number(marinaSlips.reduce((a, b) => Number(a) + Number(b.length) * Number(b.width), 0))
-    //     marinaStatsObject["totalBoats"] = Number(boats.length)
-    //     marinaStatsObject["totalOccupants"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.total.occupantCount), 0))
-    //     marinaStatsObject["totalLinearOccupancy"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.total.linearOccupancy), 0))
-    //     marinaStatsObject["totalSquareOccupancy"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.total.squareOccupancy), 0))
-    //     marinaStatsObject["percentLinearOccupancy"] = Math.round((Number(marinaStatsObject["totalLinearOccupancy"]) / Number(marinaStatsObject["totalLinearSpace"])) * 100)
-    //     marinaStatsObject["percentSquareOccupancy"] = Math.round((Number(marinaStatsObject["totalSquareOccupancy"]) / Number(marinaStatsObject["totalSquareSpace"])) * 100)
-    //     marinaStatsObject["totalMaxLinearYield"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.yield.maxLinearYield), 0))
-    //     marinaStatsObject["totalCurrentLinearYield"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.yield.currentLinearYield), 0))
-    //     return marinaStatsObject
-    // }, [slipOccupancy])
+    const marinaStats = useMemo(() => {
+        let marinaStatsObject = {}
+        // TODO: Make more efficient by iterating though the slipOccupancy, marinaSlips once
+        marinaStatsObject["totalSlips"] = Number(marinaSlips.length)
+        marinaStatsObject["totalLinearSpace"] = Math.round(Number(marinaSlips.reduce((a, b) => Number(a) + Number(b.length), 0)))
+        marinaStatsObject["totalSquareSpace"] = Number(marinaSlips.reduce((a, b) => Number(a) + Number(b.length) * Number(b.width), 0))
+        marinaStatsObject["totalBoats"] = Number(boats.length)
+        marinaStatsObject["totalOccupants"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.total.occupantCount), 0))
+        marinaStatsObject["totalLinearOccupancy"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.total.linearOccupancy), 0))
+        marinaStatsObject["totalSquareOccupancy"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.total.squareOccupancy), 0))
+        marinaStatsObject["percentLinearOccupancy"] = Math.round((Number(marinaStatsObject["totalLinearOccupancy"]) / Number(marinaStatsObject["totalLinearSpace"])) * 100)
+        marinaStatsObject["percentSquareOccupancy"] = Math.round((Number(marinaStatsObject["totalSquareOccupancy"]) / Number(marinaStatsObject["totalSquareSpace"])) * 100)
+        marinaStatsObject["totalMaxLinearYield"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.yield.maxLinearYield), 0))
+        marinaStatsObject["totalCurrentLinearYield"] = Number(slipOccupancy.reduce((a, b) => Number(a) + Number(b.yield.currentLinearYield), 0))
+        return marinaStatsObject
+    }, [slipOccupancy])
 
 
 
     return (
         <Row>
-            <Col id="Demo-worksheet-col" lg={12} xl={8} style={{paddingBottom: "5px"}}>
-                <div className="Demo" style={{overflow: "scroll"}}>
+            <Col id="Demo-worksheet-col" sm={12} md={7} style={{ paddingBottom: "5px" , backgroundColor: "#CFE4F2"}}>
+                <div className="Demo" style={{ overflow: "scroll", position: "relative" }}>
+                    <div id="Marina-metrics-floater">
+
+                        <div>
+                            <span style={{ fontWeight: "bold" }}>{marinaStats.totalOccupants} boats assigned</span> across <span style={{ fontWeight: "bold" }}>{marinaStats.totalSlips} total slips </span> with <span style={{ fontWeight: "bold" }}>{marinaStats.percentLinearOccupancy}% of marina occupied</span> {"("}{marinaStats.totalLinearOccupancy}ft of {marinaStats.totalLinearSpace}ft occupied{")"}</div>
+
+
+                    </div>
                     <div className='Marina-worksheet' style={{ height: marinaBoundary.height, width: marinaBoundary.width }}>
                         <svg viewBox={viewBoxAttrs.join(" ")} xmlns="http://www.w3.org/2000/svg">
 
@@ -449,15 +423,16 @@ export default function Demo() {
                             )}
 
                             {boats.map((boat, index) => {
+                                let fontsize = "10"
                                 return (<>
                                     <Draggable
                                         key={boat.id}
                                         grid={[1, 1]}
                                         bounds={{
-                                            left: 0 - boat.defaultPosition.x,
-                                            top: 0 - boat.defaultPosition.y,
-                                            right: marinaBoundary.width - boat.defaultPosition.x,
-                                            bottom: marinaBoundary.height - boat.defaultPosition.y
+                                            left: viewBoxAttrs[0] - boat.defaultPosition.x,
+                                            top: viewBoxAttrs[1] - boat.defaultPosition.y,
+                                            right: marinaBoundary.width + viewBoxAttrs[0] - boat.defaultPosition.x - boat.width,
+                                            bottom: marinaBoundary.height + viewBoxAttrs[1] - boat.defaultPosition.y - boat.length
                                         }}
                                         onStop={(e, data) => { updateNewPosition(data, index, boat); }}
                                     >
@@ -468,12 +443,12 @@ export default function Demo() {
                                                 className={boat.type + " MarinaItem"}
                                                 width={boat.width}
                                                 height={boat.length}
-                                                x={boat.defaultPosition.x - boat.width / 2}
-                                                y={boat.defaultPosition.y - boat.length / 2}
+                                                x={boat.defaultPosition.x}
+                                                y={boat.defaultPosition.y}
                                                 transform={'rotate(' + boat.angle + ', ' + boat.defaultPosition.x + ', ' + boat.defaultPosition.y + ')'}
                                             ></rect>
 
-                                            <text x={boat.defaultPosition.x} y={boat.defaultPosition.y}>{boat.label}</text>
+                                            <text x={boat.defaultPosition.x + 3} y={boat.defaultPosition.y + 15}>{boat.label}</text>
                                         </g>
 
                                     </Draggable>
@@ -485,48 +460,76 @@ export default function Demo() {
 
                         </svg>
 
+
                     </div>
+
                 </div>
             </Col>
-            <Col id="Demo-stats-col" lg={12} xl={4}>
-                <Tabs
-                    defaultActiveKey="occupancy"
-                    id="uncontrolled-tab-example"
-                    className="mb-3"
-                    fill
-                >
-                    <Tab eventKey="occupancy" title="Occupancy">
-                        
-                    </Tab>
-                    <Tab eventKey="rateCards" title="Rate Cards">
-                    <Row className="g-4">
-                        {rateCards.map((rateCard, index) => {
-                            return (
-                                <Col key={rateCard.id} lg={12} xl={6}>
-                                    <Card>
-                                        <Card.Body>
-                                            <Card.Title>{rateCard.label}</Card.Title>
-                                            <Card.Text>
-                                                {rateCard.rates.map((rateCardRate, rateCardRateIndex) => {
-                                                    return (
-                                                        <div>
-                                                            {rateCardRate.linearRangeMin} ft - {(rateCardRate.linearRangeMax>500)?<>500+</>:<>{rateCardRate.linearRangeMax}</>} ft: ${rateCardRate.linearRate}
-                                                        </div>
-                                                    )
-                                                })}
-                                            </Card.Text>
-                                        </Card.Body>
+            <Col id="Demo-stats-col" sm={12} md={5}>
+                <Card>
+                    <Card.Body>
+                        <Tabs
+                            defaultActiveKey="occupancy"
+                            id="uncontrolled-tab-example"
+                            className="mb-3"
+                            fill
+                        >
+                            <Tab eventKey="occupancy" title="Occupancy">
+                                <Row className="g-4">
+                                    {slipOccupancy.map((slip, index) => {
+                                        let currentSlip = marinaSlips.find((marinaSlip) => marinaSlip.id === slip.slipID)
+                                        return (
+                                            <Col sm={3} md={6} lg={6}>
+                                                <Card>
+                                                    <Card.Body>
+                                                        <Card.Title>{currentSlip.label}</Card.Title>
+                                                        <Card.Text>
+                                                            <div>{slip.total.occupantCount} boats in slip</div>
 
-                                    </Card>
-                                </Col>
-                        
-                        )
-                    }
-                    )}
+                                                        </Card.Text>
 
-                    </Row>
-                    </Tab>
-                                </Tabs>
+                                                    </Card.Body>
+                                                </Card>
+                                            </Col>
+                                        )
+                                    }
+                                    )}
+
+                                </Row>
+
+                            </Tab>
+                            <Tab eventKey="rateCards" title="Rate Cards">
+                                <Row className="g-4">
+                                    {rateCards.map((rateCard, index) => {
+                                        return (
+                                            <Col key={rateCard.id} lg={12} xl={6}>
+                                                <Card>
+                                                    <Card.Body>
+                                                        <Card.Title>{rateCard.label}</Card.Title>
+                                                        <Card.Text>
+                                                            {rateCard.rates.map((rateCardRate, rateCardRateIndex) => {
+                                                                return (
+                                                                    <div>
+                                                                        {rateCardRate.linearRangeMin} ft - {(rateCardRate.linearRangeMax > 500) ? <>500+</> : <>{rateCardRate.linearRangeMax}</>} ft: ${rateCardRate.linearRate}
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </Card.Text>
+                                                    </Card.Body>
+
+                                                </Card>
+                                            </Col>
+
+                                        )
+                                    }
+                                    )}
+
+                                </Row>
+                            </Tab>
+                        </Tabs>
+                    </Card.Body>
+                </Card>
+
 
             </Col>
         </Row>

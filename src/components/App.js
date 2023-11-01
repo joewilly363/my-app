@@ -14,8 +14,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function App() {
   return (
-    <Container fluid="lg" id="MainContainer">
+<>
     <TopNavBar />
+    <Container fluid="lg" id="MainContainer">
     <Row>
         <Col>
             <h1>EasySlip</h1>
@@ -28,6 +29,6 @@ export default function App() {
             <Demo />
 
     </Container>
-
+    </>
   );
 }

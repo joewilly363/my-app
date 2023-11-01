@@ -11,7 +11,7 @@ import logo from '../logo.svg';
 export default function TopNavigation() {
     return (
       <Navbar id="MainNav" expand="md" variant='dark' fluid>
-        <Container>
+        <Container fluid="lg">
           <Navbar.Brand href="#home">
           <img
               alt=""
@@ -19,7 +19,7 @@ export default function TopNavigation() {
               height="25"
               className="d-inline-block align-top"
             />{'         '}
-            EasySlip
+
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">

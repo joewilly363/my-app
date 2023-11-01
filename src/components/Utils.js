@@ -10,9 +10,15 @@ export function getPolygonPoints(item) {
   
     // TODO: add logic to calculate boats at an angle
   
-    var topleft = [x - width / 2, y - length / 2]
-    var topright = [x + width / 2, y - length / 2]
-    var bottomright = [x + width / 2, y + length / 2]
-    var bottomleft = [x - width / 2, y + length / 2]
+    // var topleft = [x - width / 2, y - length / 2]
+    // var topright = [x + width / 2, y - length / 2]
+    // var bottomright = [x + width / 2, y + length / 2]
+    // var bottomleft = [x - width / 2, y + length / 2]
+
+    var topleft = [x, y]
+    var topright = [x + width, y]
+    var bottomright = [x + width, y+length]
+    var bottomleft = [x, y+length]
+
     return [topleft, topright, bottomright, bottomleft]
   }
